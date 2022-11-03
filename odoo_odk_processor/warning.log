@@ -1,0 +1,12 @@
+WARNING post request received
+ERROR This logs an error message.
+WARNING 2022-11-03 10:52:30,387 views 131568 140253825566464 post request received
+ERROR 2022-11-03 10:52:30,387 views 131568 140253825566464 This logs an error message.
+WARNING 2022-11-03 10:54:10,004 views post 131790 140520080758528 post request received
+ERROR 2022-11-03 10:54:10,004 views post 131790 140520080758528 This logs an error message.
+2022-11-03 10:55:58 [WARNING] (views.post) post request received
+2022-11-03 10:55:58 [ERROR] (views.post) This logs an error message.
+2022-11-03 10:59:21 [WARNING] views post post request received
+2022-11-03 10:59:21 [ERROR] views post This logs an error message.
+2022-11-03 11:33:20 [WARNING] (views.post) post request received
+2022-11-03 11:33:20 [ERROR] (views.post) This logs an error message.

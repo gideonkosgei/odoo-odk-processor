@@ -25,5 +25,3 @@ class OdkFormProcessor:
         print('Form Saved. Returned system ID :()'.format(system_id))
 
         return system_id
-
-
