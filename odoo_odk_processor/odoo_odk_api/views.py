@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .odk_forms import OdkFormProcessor
 import json
 import logging  # import the logging library
+
 logger = logging.getLogger(__name__)  # Get an instance of a logger
 
 
@@ -21,7 +22,6 @@ class OdooApiView(APIView):
     @csrf_exempt
     def post(request, *args, **kwargs):
         logger.warning('post request received')
-        logger.debug("This logs a debug message.")
         logger.info("This logs an info message.")
         logger.error("This logs an error message.")
 
@@ -36,6 +36,3 @@ class OdooApiView(APIView):
         print('The api has been invoked')
 
         return Response({'response': True}, status=status.HTTP_200_OK)
-
-
-

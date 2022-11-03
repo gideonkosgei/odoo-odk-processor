@@ -11,8 +11,8 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
-
 import environ
+from django.utils.log import DEFAULT_LOGGING
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -104,7 +104,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'
 
 USE_I18N = True
 
@@ -120,7 +120,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ODK database configs
+# ODK database configs -> read from environment variables
 env = environ.Env()
 environ.Env.read_env()  # reading .env file
 
@@ -135,40 +135,56 @@ LOGGING = {
     # The version number of our log
     'disable_existing_loggers': False,
     'formatters': {
+        'default': {
+            'format': u'[%(asctime)s] [%(levelname)s] [%(name)s.%(funcName)s] [%(lineno)d] %(message)s',
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
         'verbose': {
-            'format': '{levelname} {asctime} {module} {funcName} {process:d} {thread:d} {message}',
-            'style': '{',
+            'format': u'[%(asctime)s] [%(levelname)s] [%(name)s.%(funcName)s] [%(lineno)d] [%(pathname)s] %(message)s',
+            "datefmt": "%Y-%m-%d %H:%M:%S",
         },
         'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-        "app": {
-            "format": (
-                u"%(asctime)s [%(levelname)s] "
-                "(%(module)s.%(funcName)s) %(message)s"
-            ),
+            'format': u'[%(asctime)s] [%(levelname)s] [%(name)s.%(funcName)s] %(message)s',
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
-    # A handler for WARNING. It is basically writing the WARNING messages into a file called WARNING.log
-    'handlers': {
-        'file': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'formatter': 'app',
-            'filename': BASE_DIR / 'warning.log',
 
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
         },
     },
-    # A logger for WARNING which has a handler called 'file'. A logger can have multiple handler
+
+    'handlers': {
+        'file': {
+            'class': 'logging.FileHandler',
+            'formatter': 'default',
+            'level': 'INFO',
+            'filename': BASE_DIR / 'app.log',
+
+        },
+        'file_error': {
+            'class': 'logging.FileHandler',
+            'formatter': 'default',
+            'level': 'ERROR',
+            'filename': BASE_DIR / 'error.log',
+
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+            'level': 'INFO',
+        },
+    },
+
     'loggers': {
         # notice the blank '', Usually you would put built in loggers like django or root here based on your needs
         '': {
-            'handlers': ['file'],  # notice how file variable is called in handler which has been defined above
-            'level': 'WARNING',
+            'handlers': ['file'],  # can take multiple handlers
+            'level': 'INFO',
             'propagate': True,
         },
+
     },
 
 }
