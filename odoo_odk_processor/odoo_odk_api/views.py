@@ -2,9 +2,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
-from .odk_forms import OdkFormProcessor
+from .odoo_rpc import OdkFormProcessor
 import json
 import logging  # import the logging library
+import odoorpc
 
 logger = logging.getLogger(__name__)  # Get an instance of a logger
 
@@ -21,18 +22,22 @@ class OdooApiView(APIView):
     @staticmethod
     @csrf_exempt
     def post(request, *args, **kwargs):
-        logger.warning('post request received')
-        logger.info("This logs an info message.")
-        logger.error("This logs an error message.")
+        logger.info(request)
 
-        if len(request.body) > 0:
-            json_data = json.loads(request.body)
-            json_data_formatted = json.dumps(json_data, indent=4, sort_keys=True)
-            odk_form = OdkFormProcessor(json_data_formatted)
-
-            # Save ODK form submission
-            odk_form.save_submission()
-
-        print('The api has been invoked')
+        try:
+            req_body_len = len(request.body)
+            assert (req_body_len > 0)
+        except AssertionError:
+            logger.exception('The Submission Request Body Is Empty. Data Cannot Be Processed. Exiting...')
+        else:
+            try:
+                # only process if request body has values
+                json_data = json.loads(request.body)
+                json_data_formatted = json.dumps(json_data, indent=4, sort_keys=True)
+                rpc = OdkFormProcessor(json_data_formatted)
+                rpc.save_submission()
+                logger.info('Post Request From Ona Received & Processed successfully')
+            except Exception as e:
+                logger.exception(e)
 
         return Response({'response': True}, status=status.HTTP_200_OK)

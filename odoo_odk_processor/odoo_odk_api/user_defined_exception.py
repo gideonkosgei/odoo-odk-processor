@@ -1,59 +1,16 @@
-import json
-import random
-import urllib.request
+class SalaryNotInRangeError(Exception):
+    """Exception raised for errors in the input salary.
 
+    Attributes:
+        salary -- input salary which caused the error
+        message -- explanation of the error
+    """
 
-class OdooProcessor:
-    def __init__(self, host, port, db, user, password):
-        self.host = host
-        self.port = port
-        self.db = db
-        self.user = user
-        self.password = password
+    def __init__(self, salary, message="Salary is not in (5000, 15000) range"):
+        self.salary = salary
+        self.message = message
+        super().__init__(self.message)
 
-    def json_rpc(self, url, method, params):
-        data = {
-            "jsonrpc": "2.0",
-            "method": method,
-            "params": params,
-            "id": random.randint(0, 1000000000),
-        }
-        req = urllib.request.Request(url=url, data=json.dumps(data).encode(), headers={
-            "Content-Type": "application/json",
-        })
-        reply = json.loads(urllib.request.urlopen(req).read().decode('UTF-8'))
-        if reply.get("error"):
-            raise Exception(reply["error"])
-        return reply["result"]
-
-    def call(self, url, service, method, *args):
-        return self.json_rpc(url, "call", {"service": service, "method": method, "args": args})
-
-    def get_url(self):
-        return "http://%s:%s/jsonrpc" % (self.host, self.port)
-
-    # get user id
-    def get_uid(self):
-        return self.call(self.get_url(), "common", "login", self.db, self.user, self.password)
-
-    def process(self, db_model, payload):
-        return self.call(self.get_url(), "object", "execute", self.db, self.get_uid(), self.password, db_model,
-                         'create', payload)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def __str__(self):
+        return f'{self.salary} -> {self.message}'
 
