@@ -28,12 +28,6 @@ class OdkFormProcessor:
     # save submitted odk form
     def save_submission(self):
 
-        _name = "health.config.catalogue"
-        _description = "Catalogue"
-        _inherit = ["mail.thread", "mail.activity.mixin"]
-        _order = "id"
-        _rec_name = "catalogue_name"
-
         try:
             model = 'health.odk.submission'
             json_data = json.loads(self.odk_form_data)
