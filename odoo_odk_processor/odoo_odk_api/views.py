@@ -35,6 +35,7 @@ class OdooApiView(APIView):
             logger.exception(e)
             response_data = e
             response_status = status.HTTP_400_BAD_REQUEST
+            print('helo')
 
         try:
             req_body_len = len(request.body)
