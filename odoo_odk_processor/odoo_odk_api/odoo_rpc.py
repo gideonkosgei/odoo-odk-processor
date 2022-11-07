@@ -2,6 +2,7 @@ import json
 import logging
 import odoorpc
 from django.conf import settings
+from rest_framework import status
 
 logger = logging.getLogger(__name__)  # Get an instance of a logger
 
@@ -53,19 +54,28 @@ class OdkFormProcessor:
         return recs
 
     def save_submission_test(self):
+        response_dict = ''
 
         try:
-            model = 'health.config.catalogues'
-
+            model = 'health.config.catalogue'
             payload = {
                 'catalogue_name': 'Test Category',
                 'catalogue_description': 'Test Category'
             }
-
             submission = self.odoo.env[model]
             submission.create(payload)
-            return 'processed successfully'
+            response_dict = {
+                'code': status.HTTP_200_OK,
+                'status': 'ok',
+                'message': 'Record Successfully Created'
+            }
 
         except odoorpc.error.RPCError as exc:
             logger.exception(exc.info)
-            return exc.info['data']['message']
+            response_dict = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': exc.info['data']['message']
+            }
+
+        return response_dict

@@ -18,8 +18,7 @@ class WelcomeApiView(APIView):
 
 
 class OdooApiView(APIView):
-    response_status = status.HTTP_200_OK
-    response_data = ''
+    response = ''
 
     @staticmethod
     @csrf_exempt
@@ -28,35 +27,41 @@ class OdooApiView(APIView):
 
         try:
             rpc = OdkFormProcessor('')
-            response_data = rpc.save_submission_test()
-            response_status = status.HTTP_200_OK
+            response = rpc.save_submission_test()
 
         except Exception as e:
             logger.exception(e)
-            response_data = e
-            response_status = status.HTTP_400_BAD_REQUEST
-            print('helo')
+            response = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': e
+            }
 
         try:
             req_body_len = len(request.body)
             assert (req_body_len > 0)
         except AssertionError:
             logger.exception('The Submission Request Body Is Empty. Data Cannot Be Processed. Exiting...')
-            response_data = 'The Submission Request Body Is Empty'
-            response_status = status.HTTP_400_BAD_REQUEST
+            response = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': 'The Submission Request Body Is Empty'
+            }
         else:
             try:
                 # only process if request body has values
                 json_data = json.loads(request.body)
                 json_data_formatted = json.dumps(json_data, indent=4, sort_keys=True)
                 rpc = OdkFormProcessor(json_data_formatted)
-                rpc.save_submission()
+                response = rpc.save_submission()
                 logger.info('Post Request From Ona Received & Processed successfully')
-                response_data = 'Post Request From Ona Received & Processed successfully'
-                response_status = status.HTTP_200_OK
+
             except Exception as e:
                 logger.exception(e)
-                response_data = e
-                response_status = status.HTTP_400_BAD_REQUEST
+                response = {
+                    'code': status.HTTP_400_BAD_REQUEST,
+                    'status': 'error',
+                    'message': e
+                }
 
-        return Response(response_data, response_status)
+        return Response(response, status=response["code"])
