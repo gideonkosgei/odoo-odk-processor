@@ -18,6 +18,8 @@ class WelcomeApiView(APIView):
 
 
 class OdooApiView(APIView):
+    response_status = status.HTTP_200_OK
+    response_data = ''
 
     @staticmethod
     @csrf_exempt
@@ -25,10 +27,22 @@ class OdooApiView(APIView):
         logger.info(request)
 
         try:
+            rpc = OdkFormProcessor('')
+            response_data = rpc.save_submission_test()
+            response_status = status.HTTP_200_OK
+
+        except Exception as e:
+            logger.exception(e)
+            response_data = e
+            response_status = status.HTTP_400_BAD_REQUEST
+
+        try:
             req_body_len = len(request.body)
             assert (req_body_len > 0)
         except AssertionError:
             logger.exception('The Submission Request Body Is Empty. Data Cannot Be Processed. Exiting...')
+            response_data = 'The Submission Request Body Is Empty'
+            response_status = status.HTTP_400_BAD_REQUEST
         else:
             try:
                 # only process if request body has values
@@ -37,7 +51,11 @@ class OdooApiView(APIView):
                 rpc = OdkFormProcessor(json_data_formatted)
                 rpc.save_submission()
                 logger.info('Post Request From Ona Received & Processed successfully')
+                response_data = 'Post Request From Ona Received & Processed successfully'
+                response_status = status.HTTP_200_OK
             except Exception as e:
                 logger.exception(e)
+                response_data = e
+                response_status = status.HTTP_400_BAD_REQUEST
 
-        return Response({'response': True}, status=status.HTTP_200_OK)
+        return Response(response_data, response_status)

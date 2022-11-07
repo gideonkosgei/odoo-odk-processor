@@ -39,13 +39,33 @@ class OdkFormProcessor:
 
             submission = self.odoo.env[model]
             submission.create(payload)
+            response = 'processed successfully'
 
         except Exception as e:
             logger.exception(e)
+            response = 'error'
 
-        return 'processed successfully'
+        return response
 
     def get_submission(self):
         model = 'health.odk.submission'
         recs = self.odoo.execute(model, 'read', [13], ['odk_submitted_object'])
         return recs
+
+    def save_submission_test(self):
+
+        try:
+            model = 'health.config.catalogues'
+
+            payload = {
+                'catalogue_name': 'Test Category',
+                'catalogue_description': 'Test Category'
+            }
+
+            submission = self.odoo.env[model]
+            submission.create(payload)
+            return 'processed successfully'
+
+        except odoorpc.error.RPCError as exc:
+            logger.exception(exc.info)
+            return exc.info['data']['message']
