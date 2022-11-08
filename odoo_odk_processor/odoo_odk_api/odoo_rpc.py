@@ -22,40 +22,113 @@ class OdkFormProcessor:
 
     # login
     try:
-        odoo.login(db_name, user_name, password)
+        odoo.login(db_name, user_name, 'password')
     except Exception as e:
         logger.exception(e)
 
     # save submitted odk form
     def save_submission(self):
-
         try:
-            model = 'health.odk.submission'
-            json_data = json.loads(self.odk_form_data)
-
-            payload = {
-                'odk_submitted_object': json.dumps(json_data, indent=4, sort_keys=True),
-                'is_processed': False
+            req_body_len = len(self.odk_form_data.body)
+            assert (req_body_len > 0)
+        except AssertionError:
+            logger.exception('The Submission Request Body Is Empty')
+            response = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': 'The Submission Request Body Is Empty'
             }
+        else:
+            try:
+                model = 'health.odk.submission'
+                # only process if request body has values
+                json_data = json.loads(self.odk_form_data.body)
+                json_data = json.dumps(json_data)
 
-            submission = self.odoo.env[model]
-            submission.create(payload)
-            response = 'processed successfully'
+                payload = {
+                    'odk_submitted_object': json_data,
+                    'is_processed': False
+                }
 
-        except Exception as e:
-            logger.exception(e)
-            response = 'error'
+                submission = self.odoo.env[model]
+                submission.create(payload)
+                response = {
+                    'code': status.HTTP_200_OK,
+                    'status': 'ok',
+                    'message': 'Record Recorded successfully'
+                }
+            except Exception as e:
+                logger.exception(e)
+                response = {
+                    'code': status.HTTP_400_BAD_REQUEST,
+                    'status': 'error',
+                    'message': str(e)
+                }
 
         return response
 
-    def get_submission(self):
-        model = 'health.odk.submission'
-        recs = self.odoo.execute(model, 'read', [13], ['odk_submitted_object'])
-        return recs
+    def get_submissions(self):
+        try:
+            model = 'health.config.catalogue'
+            # retrieve records where id is 1
+            # recs = self.odoo.execute(model, 'read', [1], ['catalogue_name', 'catalogue_description'])
+            # retrieve all records
+            recs = self.odoo.execute(model, 'search_read', [], ['catalogue_name', 'catalogue_description'])
+
+            response_dict = {
+                'code': status.HTTP_200_OK,
+                'status': 'ok',
+                'message': 'Record Retrieved Successfully',
+                'data': recs
+            }
+        except odoorpc.error.RPCError as exc:
+            response_dict = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': exc.info['data']['message']
+            }
+        except Exception as e:
+            logger.exception(e)
+            response_dict = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': str(e)
+            }
+
+        return response_dict
+
+    def get_submission_by_id(self, submission_id):
+        try:
+            model = 'health.odk.submission'
+            # retrieve records where id is 1
+            recs = self.odoo.execute(model, 'read', [submission_id], ['odk_submitted_object'])
+            recs = json.loads(recs)
+
+            response_dict = {
+                'code': status.HTTP_200_OK,
+                'status': 'ok',
+                'message': 'Record Retrieved Successfully',
+                'data': recs
+            }
+        except odoorpc.error.RPCError as exc:
+            logger.exception(exc)
+            response_dict = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': exc.info['data']['message']
+            }
+        except Exception as e:
+            logger.exception(e)
+            response_dict = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': str(e)
+            }
+
+        return response_dict
 
     def save_submission_test(self):
-        response_dict = ''
-
+        
         try:
             model = 'health.config.catalogue'
             payload = {
@@ -64,7 +137,7 @@ class OdkFormProcessor:
             }
             submission = self.odoo.env[model]
             submission.create(payload)
-            response_dict = {
+            response = {
                 'code': status.HTTP_200_OK,
                 'status': 'ok',
                 'message': 'Record Successfully Created'
@@ -72,10 +145,10 @@ class OdkFormProcessor:
 
         except odoorpc.error.RPCError as exc:
             logger.exception(exc.info)
-            response_dict = {
+            response = {
                 'code': status.HTTP_400_BAD_REQUEST,
                 'status': 'error',
                 'message': exc.info['data']['message']
             }
 
-        return response_dict
+        return response
