@@ -21,9 +21,10 @@ class OdooApiView(APIView):
     @staticmethod
     @csrf_exempt
     def post(request, *args, **kwargs):
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>> ODK Webhook Callback >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
         rpc = OdkFormProcessor(request)
-        response = rpc.save_submission()
-        return Response(response, status=response["code"])
+        response = rpc.process()
+        return Response(response, status=response['code'])
 
     @staticmethod
     def get(request, *args, **kwargs):
