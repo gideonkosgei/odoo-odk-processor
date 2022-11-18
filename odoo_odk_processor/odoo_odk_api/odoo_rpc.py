@@ -3,6 +3,7 @@ import logging
 import odoorpc
 from django.conf import settings
 from rest_framework import status
+from datetime import datetime
 
 logger = logging.getLogger(__name__)  # Get an instance of a logger
 
@@ -90,19 +91,34 @@ class OdkFormProcessor:
             # only process if request body has values
             json_data_obj = json.loads(self.odk_form_data.body)
 
+            admin_unit = self.get_admin_units_using_least_admin_unit(json_data_obj["area/ward"])
+            level_one_id = admin_unit['data'][0]['level_one_id'][0]
+            level_two_id = admin_unit['data'][0]['level_two_id'][0]
+            level_three_id = admin_unit['data'][0]['level_three_id'][0]
+            level_four_id = admin_unit['data'][0]['id']
+
             # Register farmer
             model = 'health.farmer'
 
+            visiting_date = json_data_obj[
+                "area/visit_date"] if 'area/visit_date' in json_data_obj.keys() else datetime.now().strftime("%Y-%m-%d")
+
             payload = {
-                'visiting_date': json_data_obj["form_regdate"],
+                'visiting_date': visiting_date,
                 'visiting_doctor_name': json_data_obj["contact_information/doctor_name"],
                 'farmer_name': json_data_obj["contact_information/farmer_name"],
                 'farmer_phone_number': json_data_obj["contact_information/farmer_phonenumber"],
-                'country_id': json_data_obj["area/country"]
+                'country_id': json_data_obj["area/country"],
+                'level_one_id': level_one_id,
+                'level_two_id': level_two_id,
+                'level_three_id': level_three_id,
+                'level_four_id': level_four_id
             }
+
             farmer = self.odoo.env[model]
             record_id = farmer.create(payload)
             logger.info("Farmer Registered. Record ID Is {}".format(record_id))
+
             response = {
                 'code': status.HTTP_200_OK,
                 'status': 'ok',
@@ -292,6 +308,34 @@ class OdkFormProcessor:
             # recs = self.odoo.execute(model, 'read', [1], ['catalogue_name', 'catalogue_description'])
             # retrieve all records
             recs = self.odoo.execute(model, 'search_read', [], ['catalogue_name', 'catalogue_description'])
+
+            response_dict = {
+                'code': status.HTTP_200_OK,
+                'status': 'ok',
+                'message': 'Record Retrieved Successfully',
+                'data': recs
+            }
+        except odoorpc.error.RPCError as exc:
+            response_dict = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': exc.info['data']['message']
+            }
+        except Exception as e:
+            logger.exception(e)
+            response_dict = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': str(e)
+            }
+
+        return response_dict
+
+    def get_admin_units_using_least_admin_unit(self, unit_id):
+        try:
+            model = 'health.admin.unit.level.four'
+            recs = self.odoo.execute(model, 'search_read', [('level_code', '=', unit_id)],
+                                     ['id', 'level_one_id', 'level_two_id', 'level_three_id'])
 
             response_dict = {
                 'code': status.HTTP_200_OK,

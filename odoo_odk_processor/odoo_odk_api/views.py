@@ -29,5 +29,6 @@ class OdooApiView(APIView):
     @staticmethod
     def get(request, *args, **kwargs):
         rpc = OdkFormProcessor('')
-        response = rpc.get_submission_by_id(15)
+        # response = rpc.get_submission_by_id(15)
+        response = rpc. get_admin_units_using_least_admin_unit(25025)
         return Response(response, status=response["code"])
