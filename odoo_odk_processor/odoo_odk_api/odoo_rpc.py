@@ -189,15 +189,34 @@ class OdkFormProcessor:
                 interval_btw_2_3_successive_heats = animal_array[
                     'animalregistration/heat_details/heat_interval'] if 'animalregistration/heat_details/heat_interval' in animal_array.keys() else None
 
+                # Calving Details
+                age_at_first_calving = animal_array[
+                    'animalregistration/animal_calving/calving_age'] if 'animalregistration/animal_calving/calving_age' in animal_array.keys() else None
+
+                number_of_lactation = animal_array[
+                    'animalregistration/animal_calving/parity'] if 'animalregistration/animal_calving/parity' in animal_array.keys() else None
+
+                time_interval_btw_last_calving_to_next_heat = animal_array[
+                    'animalregistration/animal_calving/calving_heatinterval'] if 'animalregistration/animal_calving/calving_heatinterval' in animal_array.keys() else None
+
+                time_interval_btw_last_calving_to_next_conception = animal_array[
+                    'animalregistration/animal_calving/calving_conceptioninterval'] if 'animalregistration/animal_calving/calving_conceptioninterval' in animal_array.keys() else None
+
                 species = self.get_catalogue_item_id(21, species_code)
                 animal_type = self.get_catalogue_item_id(14, animal_type_code)
                 breed = self.search_for_breed_using_breed_code(breed_code)
-                show_heat = self.get_catalogue_item_id(1, show_sign_of_heat_after_first_heat_code)
+
+                # Do not resolve catalogue item if the code is not set
+                # Prevents -> IndexError: list index out of range
+                if show_sign_of_heat_after_first_heat_code is not None:
+                    show_heat = self.get_catalogue_item_id(1, show_sign_of_heat_after_first_heat_code)
+                    show_heat_id = show_heat['data'][0]['id']
+                else:
+                    show_heat_id = None
 
                 species_id = species['data'][0]['id']
                 animal_type_id = animal_type['data'][0]['id']
                 breed_id = breed['data'][0]['id']
-                show_heat_id = show_heat['data'][0]['id']
 
                 payload_animal = {
                     'farmer_id': farm_id,
@@ -208,7 +227,12 @@ class OdkFormProcessor:
                     'animal_type_id': animal_type_id,
                     'age_at_first_heat': age_at_first_heat,
                     'show_sign_of_heat_after_first_heat': show_heat_id,
-                    'interval_btw_2_3_successive_heats': interval_btw_2_3_successive_heats
+                    'interval_btw_2_3_successive_heats': interval_btw_2_3_successive_heats,
+                    'age_at_first_calving': age_at_first_calving,
+                    'number_of_lactation': number_of_lactation,
+                    'time_interval_btw_last_calving_to_next_heat': time_interval_btw_last_calving_to_next_heat,
+                    'time_interval_btw_last_calving_to_next_conception': time_interval_btw_last_calving_to_next_conception
+
                 }
 
                 try:
