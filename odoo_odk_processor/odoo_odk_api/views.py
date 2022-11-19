@@ -30,5 +30,8 @@ class OdooApiView(APIView):
     def get(request, *args, **kwargs):
         rpc = OdkFormProcessor('')
         # response = rpc.get_submission_by_id(15)
-        response = rpc. get_admin_units_using_least_admin_unit(25025)
+        # response = rpc. get_admin_units_using_least_admin_unit(25025)
+        response = rpc.get_catalogue_item_id(1, 2)
+        response = rpc.search_for_breed_using_breed_code(6)
+
         return Response(response, status=response["code"])

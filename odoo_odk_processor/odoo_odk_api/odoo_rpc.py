@@ -102,13 +102,20 @@ class OdkFormProcessor:
 
             visiting_date = json_data_obj[
                 "area/visit_date"] if 'area/visit_date' in json_data_obj.keys() else datetime.now().strftime("%Y-%m-%d")
+            farmer_phone_number = json_data_obj[
+                "contact_information/farmer_phonenumber"] if "contact_information/farmer_phonenumber" in json_data_obj.keys() else ''
+            visiting_doctor_name = json_data_obj[
+                "contact_information/doctor_name"] if "contact_information/doctor_name" in json_data_obj.keys() else ''
+            farmer_name = json_data_obj[
+                "contact_information/farmer_name"] if "contact_information/farmer_name" in json_data_obj.keys() else ''
+            country_id = json_data_obj["area/country"] if "area/country" in json_data_obj.keys() else ''
 
             payload = {
                 'visiting_date': visiting_date,
-                'visiting_doctor_name': json_data_obj["contact_information/doctor_name"],
-                'farmer_name': json_data_obj["contact_information/farmer_name"],
-                'farmer_phone_number': json_data_obj["contact_information/farmer_phonenumber"],
-                'country_id': json_data_obj["area/country"],
+                'visiting_doctor_name': visiting_doctor_name,
+                'farmer_name': farmer_name,
+                'farmer_phone_number': farmer_phone_number,
+                'country_id': country_id,
                 'level_one_id': level_one_id,
                 'level_two_id': level_two_id,
                 'level_three_id': level_three_id,
@@ -157,11 +164,36 @@ class OdkFormProcessor:
                 record_id = None
                 response = None
 
+                species_code = animal_array[
+                    "animalregistration/animal_details/species"] if "animalregistration/animal_details/species" in animal_array.keys() else ''
+
+                animal_id = animal_array[
+                    'animalregistration/animal_details/animal_id'] if 'animalregistration/animal_details/animal_id' in animal_array.keys() else ''
+
+                animal_age = animal_array[
+                    'animalregistration/animal_details/animal_age'] if 'animalregistration/animal_details/animal_age' in animal_array.keys() else ''
+
+                animal_type_code = animal_array[
+                    'animalregistration/animal_details/animal_type'] if 'animalregistration/animal_details/animal_type' in animal_array.keys() else ''
+
+                breed_code = animal_array[
+                    'animalregistration/animal_details/animal_breed'] if 'animalregistration/animal_details/animal_breed' in animal_array.keys() else ''
+
+                species = self.get_catalogue_item_id(21, species_code)
+                animal_type = self.get_catalogue_item_id(14, animal_type_code)
+                breed = self.search_for_breed_using_breed_code(breed_code)
+
+                species_id = species['data'][0]['id']
+                animal_type_id = animal_type['data'][0]['id']
+                breed_id = breed['data'][0]['id']
+
                 payload_animal = {
                     'farmer_id': farm_id,
-                    'animal_identification_number': animal_array['animalregistration/animal_details/animal_id'],
-                    'breed_id': 1,
-                    'animal_age': animal_array['animalregistration/animal_details/animal_age'],
+                    'animal_identification_number': animal_id,
+                    'breed_id': breed_id,
+                    'animal_age': animal_age,
+                    'species_id': species_id,
+                    'animal_type_id': animal_type_id,
                 }
 
                 try:
@@ -337,6 +369,63 @@ class OdkFormProcessor:
             recs = self.odoo.execute(model, 'search_read', [('level_code', '=', unit_id)],
                                      ['id', 'level_one_id', 'level_two_id', 'level_three_id'])
 
+            response_dict = {
+                'code': status.HTTP_200_OK,
+                'status': 'ok',
+                'message': 'Record Retrieved Successfully',
+                'data': recs
+            }
+        except odoorpc.error.RPCError as exc:
+            response_dict = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': exc.info['data']['message']
+            }
+        except Exception as e:
+            logger.exception(e)
+            response_dict = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': str(e)
+            }
+
+        return response_dict
+
+    def get_catalogue_item_id(self, catalogue_id, item_code):
+        try:
+            model = 'health.config.catalogue.item'
+            recs = self.odoo.execute(model, 'search_read',
+                                     [('catalogue_id', '=', catalogue_id), ('item_code', '=', item_code)],
+                                     ['id', 'item_code', 'item_name', 'item_is_active', 'item_description'])
+
+            response_dict = {
+                'code': status.HTTP_200_OK,
+                'status': 'ok',
+                'message': 'Record Retrieved Successfully',
+                'data': recs
+            }
+        except odoorpc.error.RPCError as exc:
+            response_dict = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': exc.info['data']['message']
+            }
+        except Exception as e:
+            logger.exception(e)
+            response_dict = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': str(e)
+            }
+
+        return response_dict
+
+    def search_for_breed_using_breed_code(self, breed_code):
+        try:
+            model = 'health.breed'
+            recs = self.odoo.execute(model, 'search_read',
+                                     [('breed_code', '=', breed_code)],
+                                     ['id', 'country_id', 'species_id', 'breed_code', 'breed_name', 'breed_is_active'])
             response_dict = {
                 'code': status.HTTP_200_OK,
                 'status': 'ok',
