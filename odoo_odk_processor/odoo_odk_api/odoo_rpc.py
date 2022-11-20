@@ -202,6 +202,56 @@ class OdkFormProcessor:
                 time_interval_btw_last_calving_to_next_conception = animal_array[
                     'animalregistration/animal_calving/calving_conceptioninterval'] if 'animalregistration/animal_calving/calving_conceptioninterval' in animal_array.keys() else None
 
+                # Breed
+                date_of_service = animal_array[
+                    'animalregistration/Breeding_details/service_date'] if 'animalregistration/Breeding_details/service_date' in animal_array.keys() else None
+
+                type_of_mating_code = animal_array[
+                    'animalregistration/Breeding_details/breeding_method'] if 'animalregistration/Breeding_details/breeding_method' in animal_array.keys() else None
+
+                gestation_months = animal_array[
+                    'animalregistration/Breeding_details/gestation_months'] if 'animalregistration/Breeding_details/gestation_months' in animal_array.keys() else None
+
+                ai_conceptions = animal_array[
+                    'animalregistration/Breeding_details/ai_conceptions'] if 'animalregistration/Breeding_details/ai_conceptions' in animal_array.keys() else None
+
+                animal_conceived_code = animal_array[
+                    'animalregistration/Breeding_details/animal_conceived'] if 'animalregistration/Breeding_details/animal_conceived' in animal_array.keys() else None
+
+                # Fertility Details
+                dystocia_code = animal_array[
+                    'animalregistration/fertility_details/suffer_dystocia'] if 'animalregistration/fertility_details/suffer_dystocia' in animal_array.keys() else None
+
+                dystocia_foetus_status_code = animal_array[
+                    'animalregistration/fertility_details/foetus_status'] if 'animalregistration/fertility_details/foetus_status' in animal_array.keys() else None
+
+                delayed_post_partum_heat_code = animal_array[
+                    'animalregistration/fertility_details/suffer_delayedheat'] if 'animalregistration/fertility_details/suffer_delayedheat' in animal_array.keys() else None
+
+                delayed_post_partum_heat_length = animal_array[
+                    'animalregistration/fertility_details/delayedheat_period'] if 'animalregistration/fertility_details/delayedheat_period' in animal_array.keys() else None
+
+                retention_of_placenta_code = animal_array[
+                    "animalregistration/fertility_details/suffer_retainedplacenta"] if "animalregistration/fertility_details/suffer_retainedplacenta" in animal_array.keys() else None
+
+                retention_of_placenta_count = animal_array[
+                    'animalregistration/fertility_details/retainedplacenta_times'] if 'animalregistration/fertility_details/retainedplacenta_times' in animal_array.keys() else None
+
+                abortion_code = animal_array[
+                    'animalregistration/fertility_details/suffer_abortion'] if 'animalregistration/fertility_details/suffer_abortion' in animal_array.keys() else None
+
+                abortion_count = animal_array[
+                    'animalregistration/fertility_details/abortion_times'] if 'animalregistration/fertility_details/abortion_times' in animal_array.keys() else None
+
+                abortion_month = animal_array[
+                    'animalregistration/fertility_details/abortion_month'] if 'animalregistration/fertility_details/abortion_month' in animal_array.keys() else None
+
+                still_birth_code = animal_array[
+                    'animalregistration/fertility_details/suffer_stillbirth'] if 'animalregistration/fertility_details/suffer_stillbirth' in animal_array.keys() else None
+
+                still_birth_count = animal_array[
+                    'animalregistration/fertility_details/stillbirth_times'] if 'animalregistration/fertility_details/stillbirth_times' in animal_array.keys() else None
+
                 species = self.get_catalogue_item_id(21, species_code)
                 animal_type = self.get_catalogue_item_id(14, animal_type_code)
                 breed = self.search_for_breed_using_breed_code(breed_code)
@@ -213,6 +263,54 @@ class OdkFormProcessor:
                     show_heat_id = show_heat['data'][0]['id']
                 else:
                     show_heat_id = None
+
+                if type_of_mating_code is not None:
+                    mating_type = self.get_catalogue_item_id(13, type_of_mating_code)
+                    type_of_mating_id = mating_type['data'][0]['id']
+                else:
+                    type_of_mating_id = None
+
+                if animal_conceived_code is not None:
+                    animal_conceived = self.get_catalogue_item_id(1, animal_conceived_code)
+                    animal_conceived_id = animal_conceived['data'][0]['id']
+                else:
+                    animal_conceived_id = None
+
+                if dystocia_code is not None:
+                    dystocia = self.get_catalogue_item_id(1, dystocia_code)
+                    dystocia_id = dystocia['data'][0]['id']
+                else:
+                    dystocia_id = None
+
+                if dystocia_foetus_status_code is not None:
+                    dystocia_foetus_status = self.get_catalogue_item_id(15, dystocia_foetus_status_code)
+                    dystocia_foetus_status_id = dystocia_foetus_status['data'][0]['id']
+                else:
+                    dystocia_foetus_status_id = None
+
+                if delayed_post_partum_heat_code is not None:
+                    delayed_post_partum_heat = self.get_catalogue_item_id(1, delayed_post_partum_heat_code)
+                    delayed_post_partum_heat_id = delayed_post_partum_heat['data'][0]['id']
+                else:
+                    delayed_post_partum_heat_id = None
+
+                if retention_of_placenta_code is not None:
+                    retention_of_placenta = self.get_catalogue_item_id(1, retention_of_placenta_code)
+                    retention_of_placenta_id = retention_of_placenta['data'][0]['id']
+                else:
+                    retention_of_placenta_id = None
+
+                if abortion_code is not None:
+                    abortion = self.get_catalogue_item_id(1, abortion_code)
+                    abortion_id = abortion['data'][0]['id']
+                else:
+                    abortion_id = None
+
+                if still_birth_code is not None:
+                    still_birth = self.get_catalogue_item_id(1, still_birth_code)
+                    still_birth_id = still_birth['data'][0]['id']
+                else:
+                    still_birth_id = None
 
                 species_id = species['data'][0]['id']
                 animal_type_id = animal_type['data'][0]['id']
@@ -231,8 +329,23 @@ class OdkFormProcessor:
                     'age_at_first_calving': age_at_first_calving,
                     'number_of_lactation': number_of_lactation,
                     'time_interval_btw_last_calving_to_next_heat': time_interval_btw_last_calving_to_next_heat,
-                    'time_interval_btw_last_calving_to_next_conception': time_interval_btw_last_calving_to_next_conception
-
+                    'time_interval_btw_last_calving_to_next_conception': time_interval_btw_last_calving_to_next_conception,
+                    'date_of_service': date_of_service,
+                    'type_of_mating': type_of_mating_id,
+                    'months_of_gestation_at_present': gestation_months,
+                    'number_of_ai_per_conception': ai_conceptions,
+                    'conception_after_last_service': animal_conceived_id,
+                    'dystocia': dystocia_id,
+                    'dystocia_foetus_status': dystocia_foetus_status_id,
+                    'delayed_post_partum_heat': delayed_post_partum_heat_id,
+                    'delayed_post_partum_heat_length': delayed_post_partum_heat_length,
+                    'retention_of_placenta': retention_of_placenta_id,
+                    'retention_of_placenta_count': retention_of_placenta_count,
+                    'abortion': abortion_id,
+                    'abortion_count': abortion_count,
+                    'abortion_month': abortion_month,
+                    'still_birth': still_birth_id,
+                    'still_birth_count': still_birth_count
                 }
 
                 try:
