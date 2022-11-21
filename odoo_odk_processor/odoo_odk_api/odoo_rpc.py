@@ -29,6 +29,17 @@ class OdkFormProcessor:
     except Exception as e:
         logger.exception(e)
 
+    # Extract Values From ODK Submitted Object
+    def get_odk_values(self, array, attribute, is_lookup, catalogue):
+        value = array[attribute] if attribute in array.keys() else None
+        if is_lookup and value is not None:
+            value_array = self.get_catalogue_item_id(catalogue, value)
+            return value_array['data'][0]['id']
+        elif not is_lookup and value is not None:
+            return value
+        else:
+            return None
+
     # save submitted odk form
     def save_submission(self):
         record_id = None
@@ -281,6 +292,50 @@ class OdkFormProcessor:
                 repeat_breeding_count = animal_array[
                     'animalregistration/history_diseases/breeding_times'] if 'animalregistration/history_diseases/breeding_times' in animal_array.keys() else None
 
+                # General Appearance
+                general_appearance_code = animal_array[
+                    'animalregistration/grp_appearance/Assessment_appearance'] if 'animalregistration/grp_appearance/Assessment_appearance' in animal_array.keys() else None
+
+                body_coat_code = animal_array[
+                    'animalregistration/grp_appearance/assesment_bodycoat'] if 'animalregistration/grp_appearance/assesment_bodycoat' in animal_array.keys() else None
+
+                general_health_condition_code = animal_array[
+                    'animalregistration/grp_appearance/assessment_bodycondition'] if 'animalregistration/grp_appearance/assessment_bodycondition' in animal_array.keys() else None
+
+                appetite_code = animal_array[
+                    'animalregistration/grp_appearance/assessment_appetite'] if 'animalregistration/grp_appearance/assessment_appetite' in animal_array.keys() else None
+
+                eyes_code = animal_array[
+                    'animalregistration/grp_appearance/assessment_eyes'] if 'animalregistration/grp_appearance/assessment_eyes' in animal_array.keys() else None
+
+                group_key = 'animalregistration/grp_appearance/'
+                wounded = self.get_odk_values(animal_array, group_key + 'assessment_wounds', True, 1)
+                wound_count = self.get_odk_values(animal_array, group_key + 'number_wounds', False, None)
+                wounded_area = self.get_odk_values(animal_array, group_key + 'location_wounds', False, None)
+                hair_patched = self.get_odk_values(animal_array, group_key + 'assessment_hairlosspatches', True, 1)
+                hair_patches_count = self.get_odk_values(animal_array, group_key + 'number_hairlosspatches', False,
+                                                         None)
+                hair_patch_location = self.get_odk_values(animal_array, group_key + 'location_hairlosspatches', False,
+                                                          None)
+
+                group_key = 'animalregistration/grp_physicalexamination/'
+                body_temperature = self.get_odk_values(animal_array, group_key + 'body_temperature', False, None)
+                presence_of_injury_in_the_abdomen = self.get_odk_values(animal_array, group_key + 'abdomen_injurytype',
+                                                                        True, 1)
+                abdominal_injury_type = self.get_odk_values(animal_array, group_key + 'abdomen_injury', False, None)
+                presence_of_external_parasite = self.get_odk_values(animal_array, group_key + 'external_parasite', True,
+                                                                    1)
+                hanging_out_of_placenta = self.get_odk_values(animal_array, group_key + 'placenta', True, 1)
+                presence_of_injury_on_udder = self.get_odk_values(animal_array, group_key + 'udder_injury', True, 1)
+
+                appearance_of_udder = self.get_odk_values(animal_array, group_key + 'udder', True, 8)
+                position_of_foetus = self.get_odk_values(animal_array, group_key + 'foetus_position', True, 9)
+                ease_of_handling = self.get_odk_values(animal_array, group_key + 'handling_ease', True, 18)
+                colour_of_visible_mucous_membrane = self.get_odk_values(animal_array, group_key + 'mucous_membrane',
+                                                                        True, 12)
+                genital_discharge = self.get_odk_values(animal_array, group_key + 'genital_discharge', True, 11)
+                water_bag = self.get_odk_values(animal_array, group_key + 'water_bag', True, 10)
+
                 species = self.get_catalogue_item_id(21, species_code)
                 animal_type = self.get_catalogue_item_id(14, animal_type_code)
                 breed = self.search_for_breed_using_breed_code(breed_code)
@@ -384,6 +439,36 @@ class OdkFormProcessor:
                 else:
                     repeat_breeding_id = None
 
+                if general_appearance_code is not None:
+                    general_appearance = self.get_catalogue_item_id(3, general_appearance_code)
+                    general_appearance_id = general_appearance['data'][0]['id']
+                else:
+                    general_appearance_id = None
+
+                if body_coat_code is not None:
+                    body_coat = self.get_catalogue_item_id(4, body_coat_code)
+                    body_coat_id = body_coat['data'][0]['id']
+                else:
+                    body_coat_id = None
+
+                if general_health_condition_code is not None:
+                    general_health_condition = self.get_catalogue_item_id(5, general_health_condition_code)
+                    general_health_condition_id = general_health_condition['data'][0]['id']
+                else:
+                    general_health_condition_id = None
+
+                if appetite_code is not None:
+                    appetite = self.get_catalogue_item_id(6, appetite_code)
+                    appetite_id = appetite['data'][0]['id']
+                else:
+                    appetite_id = None
+
+                if eyes_code is not None:
+                    eyes = self.get_catalogue_item_id(7, eyes_code)
+                    eyes_id = eyes['data'][0]['id']
+                else:
+                    eyes_id = None
+
                 species_id = species['data'][0]['id']
                 animal_type_id = animal_type['data'][0]['id']
                 breed_id = breed['data'][0]['id']
@@ -428,7 +513,30 @@ class OdkFormProcessor:
                     'udder_fibrotic_change_status': udder_fibrotic_change_status_id,
                     'udder_fibrotic_change': udder_fibrotic_change_id,
                     'repeat_breeding': repeat_breeding_id,
-                    'repeat_breeding_count': repeat_breeding_count
+                    'repeat_breeding_count': repeat_breeding_count,
+                    'general_appearance': general_appearance_id,
+                    'body_coat': body_coat_id,
+                    'general_health_condition': general_health_condition_id,
+                    'appetite': appetite_id,
+                    'eyes': eyes_id,
+                    'wounded': wounded,
+                    'wound_count': wound_count,
+                    'wounded_area': wounded_area,
+                    'hair_patched': hair_patched,
+                    'hair_patches_count': hair_patches_count,
+                    'hair_patch_location': hair_patch_location,
+                    'body_temperature': body_temperature,
+                    'presence_of_injury_in_the_abdomen': presence_of_injury_in_the_abdomen,
+                    'abdominal_injury_type': abdominal_injury_type,
+                    'presence_of_external_parasite': presence_of_external_parasite,
+                    'appearance_of_udder': appearance_of_udder,
+                    'presence_of_injury_on_udder': presence_of_injury_on_udder,
+                    'hanging_out_of_placenta': hanging_out_of_placenta,
+                    'position_of_foetus': position_of_foetus,
+                    'ease_of_handling': ease_of_handling,
+                    'colour_of_visible_mucous_membrane': colour_of_visible_mucous_membrane,
+                    'genital_discharge': genital_discharge,
+                    'water_bag': water_bag
                 }
 
                 try:
