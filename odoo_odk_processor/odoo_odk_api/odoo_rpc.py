@@ -252,6 +252,35 @@ class OdkFormProcessor:
                 still_birth_count = animal_array[
                     'animalregistration/fertility_details/stillbirth_times'] if 'animalregistration/fertility_details/stillbirth_times' in animal_array.keys() else None
 
+                # Disease & Condition
+
+                mastitis_code = animal_array[
+                    'animalregistration/history_diseases/suffer_mastitis'] if 'animalregistration/history_diseases/suffer_mastitis' in animal_array.keys() else None
+                mastitis_quarters_affected = animal_array[
+                    'animalregistration/history_diseases/quarters_affected'] if 'animalregistration/history_diseases/quarters_affected' in animal_array.keys() else None
+                teat_canal_blockage_code = animal_array[
+                    'animalregistration/history_diseases/canal_blockage'] if 'animalregistration/history_diseases/canal_blockage' in animal_array.keys() else None
+
+                udder_fibrotic_change_code = animal_array[
+                    'animalregistration/history_diseases/fibrotic_udder'] if 'animalregistration/history_diseases/fibrotic_udder' in animal_array.keys() else None
+                udder_fibrotic_change_status_code = animal_array[
+                    'animalregistration/history_diseases/fibrotic_change'] if 'animalregistration/history_diseases/fibrotic_change' in animal_array.keys() else None
+
+                lameness_history_code = animal_array[
+                    'animalregistration/history_diseases/lameness_treat'] if 'animalregistration/history_diseases/lameness_treat' in animal_array.keys() else None
+                lameness_treatment = animal_array[
+                    'animalregistration/history_diseases/lameness_treatmenttype'] if 'animalregistration/history_diseases/lameness_treatmenttype' in animal_array.keys() else None
+
+                hip_dislocation_fracture_history_code = animal_array[
+                    'animalregistration/history_diseases/suffer_hipdislocation'] if 'animalregistration/history_diseases/suffer_hipdislocation' in animal_array.keys() else None
+                duration_of_the_existing_disease = animal_array[
+                    'animalregistration/history_diseases/dislocation_period'] if 'animalregistration/history_diseases/dislocation_period' in animal_array.keys() else None
+
+                repeat_breeding_code = animal_array[
+                    'animalregistration/history_diseases/suffer_repeatbreeding'] if 'animalregistration/history_diseases/suffer_repeatbreeding' in animal_array.keys() else None
+                repeat_breeding_count = animal_array[
+                    'animalregistration/history_diseases/breeding_times'] if 'animalregistration/history_diseases/breeding_times' in animal_array.keys() else None
+
                 species = self.get_catalogue_item_id(21, species_code)
                 animal_type = self.get_catalogue_item_id(14, animal_type_code)
                 breed = self.search_for_breed_using_breed_code(breed_code)
@@ -312,6 +341,49 @@ class OdkFormProcessor:
                 else:
                     still_birth_id = None
 
+                if mastitis_code is not None:
+                    mastitis = self.get_catalogue_item_id(1, mastitis_code)
+                    mastitis_id = mastitis['data'][0]['id']
+                else:
+                    mastitis_id = None
+
+                if teat_canal_blockage_code is not None:
+                    teat_canal_blockage = self.get_catalogue_item_id(1, teat_canal_blockage_code)
+                    teat_canal_blockage_id = teat_canal_blockage['data'][0]['id']
+                else:
+                    teat_canal_blockage_id = None
+
+                if lameness_history_code is not None:
+                    lameness_history = self.get_catalogue_item_id(1, lameness_history_code)
+                    lameness_history_id = lameness_history['data'][0]['id']
+                else:
+                    lameness_history_id = None
+
+                if hip_dislocation_fracture_history_code is not None:
+                    hip_dislocation_fracture_history = self.get_catalogue_item_id(1,
+                                                                                  hip_dislocation_fracture_history_code)
+                    hip_dislocation_fracture_history_id = hip_dislocation_fracture_history['data'][0]['id']
+                else:
+                    hip_dislocation_fracture_history_id = None
+
+                if udder_fibrotic_change_status_code is not None:
+                    udder_fibrotic_change_status = self.get_catalogue_item_id(16, udder_fibrotic_change_status_code)
+                    udder_fibrotic_change_status_id = udder_fibrotic_change_status['data'][0]['id']
+                else:
+                    udder_fibrotic_change_status_id = None
+
+                if udder_fibrotic_change_code is not None:
+                    udder_fibrotic_change = self.get_catalogue_item_id(1, udder_fibrotic_change_code)
+                    udder_fibrotic_change_id = udder_fibrotic_change['data'][0]['id']
+                else:
+                    udder_fibrotic_change_id = None
+
+                if repeat_breeding_code is not None:
+                    repeat_breeding = self.get_catalogue_item_id(1, repeat_breeding_code)
+                    repeat_breeding_id = repeat_breeding['data'][0]['id']
+                else:
+                    repeat_breeding_id = None
+
                 species_id = species['data'][0]['id']
                 animal_type_id = animal_type['data'][0]['id']
                 breed_id = breed['data'][0]['id']
@@ -345,7 +417,18 @@ class OdkFormProcessor:
                     'abortion_count': abortion_count,
                     'abortion_month': abortion_month,
                     'still_birth': still_birth_id,
-                    'still_birth_count': still_birth_count
+                    'still_birth_count': still_birth_count,
+                    'mastitis_quarters_affected': mastitis_quarters_affected,
+                    'teat_canal_blockage': teat_canal_blockage_id,
+                    'mastitis': mastitis_id,
+                    'lameness_history': lameness_history_id,
+                    'lameness_treatment': lameness_treatment,
+                    'hip_dislocation_fracture_history': hip_dislocation_fracture_history_id,
+                    'duration_of_the_existing_disease': duration_of_the_existing_disease,
+                    'udder_fibrotic_change_status': udder_fibrotic_change_status_id,
+                    'udder_fibrotic_change': udder_fibrotic_change_id,
+                    'repeat_breeding': repeat_breeding_id,
+                    'repeat_breeding_count': repeat_breeding_count
                 }
 
                 try:
