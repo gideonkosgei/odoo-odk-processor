@@ -101,6 +101,7 @@ class OdkFormProcessor:
         try:
             # only process if request body has values
             json_data_obj = json.loads(self.odk_form_data.body)
+            farm_object = json.loads(self.odk_form_data.body)
 
             admin_unit = self.get_admin_units_using_least_admin_unit(json_data_obj["area/ward"])
             level_one_id = admin_unit['data'][0]['level_one_id'][0]
@@ -121,6 +122,12 @@ class OdkFormProcessor:
                 "contact_information/farmer_name"] if "contact_information/farmer_name" in json_data_obj.keys() else ''
             country_id = json_data_obj["area/country"] if "area/country" in json_data_obj.keys() else ''
 
+            # Lab Tests
+            group_key = 'grp_feeds/'
+            nutritional_plan = self.get_odk_values(farm_object, group_key + 'feed_type', True, 17)
+            regular_supply_of_minerals_and_vitamins = self.get_odk_values(farm_object, group_key + 'mineral_supply',
+                                                                          True, 2)
+
             payload = {
                 'visiting_date': visiting_date,
                 'visiting_doctor_name': visiting_doctor_name,
@@ -130,7 +137,9 @@ class OdkFormProcessor:
                 'level_one_id': level_one_id,
                 'level_two_id': level_two_id,
                 'level_three_id': level_three_id,
-                'level_four_id': level_four_id
+                'level_four_id': level_four_id,
+                'nutritional_plan': nutritional_plan,
+                'regular_supply_of_minerals_and_vitamins': regular_supply_of_minerals_and_vitamins,
             }
 
             farmer = self.odoo.env[model]
