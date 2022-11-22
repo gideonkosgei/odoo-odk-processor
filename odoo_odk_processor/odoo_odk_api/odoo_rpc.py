@@ -355,6 +355,15 @@ class OdkFormProcessor:
                 per_rectum_examination_findings = self.get_odk_values(animal_array, group_key + 'rectal_examination',
                                                                       False, None)
 
+                # Treatment
+                group_key = 'animalregistration/grp_treatment/'
+                treated = self.get_odk_values(animal_array, group_key + 'treatment_given', True, 1)
+                treatment_1 = self.get_odk_values(animal_array, group_key + 'treatment_1', False, None)
+                treatment_2 = self.get_odk_values(animal_array, group_key + 'treatment_2', False, None)
+                treatment_3 = self.get_odk_values(animal_array, group_key + 'treatment_3', False, None)
+                advised = self.get_odk_values(animal_array, group_key + 'advice_given', True, 1)
+                treatment_advice_given = self.get_odk_values(animal_array, group_key + 'advice', False, None)
+
                 species = self.get_catalogue_item_id(21, species_code)
                 animal_type = self.get_catalogue_item_id(14, animal_type_code)
                 breed = self.search_for_breed_using_breed_code(breed_code)
@@ -568,7 +577,13 @@ class OdkFormProcessor:
                     'lab_test_result_1': lab_test_result_1,
                     'lab_test_result_2': lab_test_result_2,
                     'lab_test_result_3': lab_test_result_3,
-                    'per_rectum_examination_findings': per_rectum_examination_findings
+                    'per_rectum_examination_findings': per_rectum_examination_findings,
+                    'treated': treated,
+                    'treatment_1': treatment_1,
+                    'treatment_2': treatment_2,
+                    'treatment_3': treatment_3,
+                    'advised': advised,
+                    'treatment_advice_given': treatment_advice_given
                 }
 
                 try:
