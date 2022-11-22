@@ -336,6 +336,25 @@ class OdkFormProcessor:
                 genital_discharge = self.get_odk_values(animal_array, group_key + 'genital_discharge', True, 11)
                 water_bag = self.get_odk_values(animal_array, group_key + 'water_bag', True, 10)
 
+                # Lab Tests
+                group_key = 'animalregistration/grp_findings/'
+                rapid_tests_done = self.get_odk_values(animal_array, group_key + 'rapidtest_done', True, 1)
+                rapid_tests_1 = self.get_odk_values(animal_array, group_key + 'rapidtest_1', False, None)
+                rapid_tests_2 = self.get_odk_values(animal_array, group_key + 'rapidtest_2', False, None)
+                rapid_tests_3 = self.get_odk_values(animal_array, group_key + 'rapidtest_3', False, None)
+
+                lab_test_recommended = self.get_odk_values(animal_array, group_key + 'labtest_recommended', True, 1)
+                lab_tests_1 = self.get_odk_values(animal_array, group_key + 'la_recommendation1', False, None)
+                lab_tests_2 = self.get_odk_values(animal_array, group_key + 'la_recommendation2', False, None)
+                lab_tests_3 = self.get_odk_values(animal_array, group_key + 'la_recommendation3', False, None)
+
+                lab_test_results = self.get_odk_values(animal_array, group_key + 'lab_results', True, 1)
+                lab_test_result_1 = self.get_odk_values(animal_array, group_key + 'labresult_1', False, None)
+                lab_test_result_2 = self.get_odk_values(animal_array, group_key + 'labresult_2', False, None)
+                lab_test_result_3 = self.get_odk_values(animal_array, group_key + 'labresult_3', False, None)
+                per_rectum_examination_findings = self.get_odk_values(animal_array, group_key + 'rectal_examination',
+                                                                      False, None)
+
                 species = self.get_catalogue_item_id(21, species_code)
                 animal_type = self.get_catalogue_item_id(14, animal_type_code)
                 breed = self.search_for_breed_using_breed_code(breed_code)
@@ -536,7 +555,20 @@ class OdkFormProcessor:
                     'ease_of_handling': ease_of_handling,
                     'colour_of_visible_mucous_membrane': colour_of_visible_mucous_membrane,
                     'genital_discharge': genital_discharge,
-                    'water_bag': water_bag
+                    'water_bag': water_bag,
+                    'rapid_tests_done': rapid_tests_done,
+                    'rapid_tests_1': rapid_tests_1,
+                    'rapid_tests_2': rapid_tests_2,
+                    'rapid_tests_3': rapid_tests_3,
+                    'lab_test_recommended': lab_test_recommended,
+                    'lab_tests_1': lab_tests_1,
+                    'lab_tests_2': lab_tests_2,
+                    'lab_tests_3': lab_tests_3,
+                    'lab_test_results': lab_test_results,
+                    'lab_test_result_1': lab_test_result_1,
+                    'lab_test_result_2': lab_test_result_2,
+                    'lab_test_result_3': lab_test_result_3,
+                    'per_rectum_examination_findings': per_rectum_examination_findings
                 }
 
                 try:
