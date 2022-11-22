@@ -170,6 +170,57 @@ class OdkFormProcessor:
 
         return response, record_id
 
+    def save_vaccination_record(self, odk_object, animal_id):
+        record_id = None
+        response = None
+        try:
+            print('Entered Vaccination Module.....')
+            model = 'health.vaccination'
+            group_key = 'animalregistration/repeat_vaccinetype/treatment_diseases/'
+
+            for vax in odk_object:
+                print('Processing Vaccination Record')
+                record_id = None
+                response = None
+
+                vaccine_id = self.get_odk_values(vax, group_key + 'vaccine_type', True, 22)
+                vaccination_date = self.get_odk_values(vax, group_key + 'vaccination_date',
+                                                       False, None)
+                payload = {
+                    'animal_id': animal_id,
+                    'vaccine_id': vaccine_id,
+                    'vaccination_date': vaccination_date
+                }
+
+                try:
+                    vax = self.odoo.env[model]
+                    record_id = vax.create(payload)
+                    logger.info("vaccination Record Created. Record ID Is {}".format(record_id))
+
+                    response = {
+                        'code': status.HTTP_200_OK,
+                        'status': 'ok',
+                        'message': 'Record Recorded successfully'
+                    }
+
+                except odoorpc.error.RPCError as exc:
+                    logger.exception(exc.info['data']['message'])
+                    response = {
+                        'code': status.HTTP_400_BAD_REQUEST,
+                        'status': 'error',
+                        'message': exc.info['data']['message']
+                    }
+
+        except Exception as e:
+            logger.exception(e)
+            response = {
+                'code': status.HTTP_400_BAD_REQUEST,
+                'status': 'error',
+                'message': str(e)
+            }
+
+        return response, record_id
+
     def save_animal_details(self, farm_id):
         record_id = None
         response = None
@@ -599,6 +650,7 @@ class OdkFormProcessor:
                     animal = self.odoo.env[model_animal]
                     record_id = animal.create(payload_animal)
                     logger.info("Animal Registered. Record ID Is {}".format(record_id))
+
                     response = {
                         'code': status.HTTP_200_OK,
                         'status': 'ok',
@@ -611,6 +663,17 @@ class OdkFormProcessor:
                         'code': status.HTTP_400_BAD_REQUEST,
                         'status': 'error',
                         'message': exc.info['data']['message']
+                    }
+                # Save Vaccination Records
+                try:
+                    vax_object = animal_array['animalregistration/repeat_vaccinetype']
+                    response, record_id = self.save_vaccination_record(vax_object, record_id)
+                except Exception as e:
+                    logger.exception(e)
+                    response = {
+                        'code': status.HTTP_400_BAD_REQUEST,
+                        'status': 'error',
+                        'message': str(e)
                     }
 
         except Exception as e:
