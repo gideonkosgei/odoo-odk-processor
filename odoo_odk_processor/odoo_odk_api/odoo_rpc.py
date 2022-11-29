@@ -99,28 +99,26 @@ class OdkFormProcessor:
         record_id = None
         response = None
         try:
-            # only process if request body has values
-            json_data_obj = json.loads(self.odk_form_data.body)
-            farm_object = json.loads(self.odk_form_data.body)
 
-            admin_unit = self.get_admin_units_using_least_admin_unit(json_data_obj["area/ward"])
+            farm_object = json.loads(self.odk_form_data.body)
+            admin_unit = self.get_admin_units_using_least_admin_unit(farm_object["area/ward"])
             level_one_id = admin_unit['data'][0]['level_one_id'][0]
             level_two_id = admin_unit['data'][0]['level_two_id'][0]
             level_three_id = admin_unit['data'][0]['level_three_id'][0]
             level_four_id = admin_unit['data'][0]['id']
 
-            # Register farmer
             model = 'health.farmer'
-
-            visiting_date = json_data_obj[
-                "area/visit_date"] if 'area/visit_date' in json_data_obj.keys() else datetime.now().strftime("%Y-%m-%d")
-            farmer_phone_number = json_data_obj[
-                "contact_information/farmer_phonenumber"] if "contact_information/farmer_phonenumber" in json_data_obj.keys() else ''
-            visiting_doctor_name = json_data_obj[
-                "contact_information/doctor_name"] if "contact_information/doctor_name" in json_data_obj.keys() else ''
-            farmer_name = json_data_obj[
-                "contact_information/farmer_name"] if "contact_information/farmer_name" in json_data_obj.keys() else ''
-            country_id = json_data_obj["area/country"] if "area/country" in json_data_obj.keys() else ''
+            # Farmer Details
+            group_key = 'contact_information/'
+            farmer_phone_number = self.get_odk_values(farm_object, group_key + 'farmer_phonenumber',
+                                                      False, None)
+            visiting_doctor_name = self.get_odk_values(farm_object, group_key + 'doctor_name',
+                                                       False, None)
+            farmer_name = self.get_odk_values(farm_object, group_key + 'farmer_name',
+                                              False, None)
+            visiting_date = self.get_odk_values(farm_object, 'area/visit_date', False, None)
+            visiting_date = datetime.now().strftime("%Y-%m-%d") if visiting_date is None else visiting_date
+            country_id = self.get_odk_values(farm_object, 'area/country', False, None)
 
             # Lab Tests
             group_key = 'grp_feeds/'
@@ -716,8 +714,12 @@ class OdkFormProcessor:
                     }
                 # Save Vaccination Records
                 try:
-                    vax_object = animal_array['animalregistration/repeat_vaccinetype']
-                    response, record_id = self.save_vaccination_record(vax_object, animal_id)
+                    vax_object = self.get_odk_values(animal_array, 'animalregistration/repeat_vaccinetype',
+                                                     False, None)
+
+                    if vax_object is not None:
+                        response, record_id = self.save_vaccination_record(vax_object, animal_id)
+
                 except Exception as e:
                     logger.exception(e)
                     response = {
@@ -728,8 +730,10 @@ class OdkFormProcessor:
 
                 # Save De-worming Records
                 try:
-                    deworm_object = animal_array['animalregistration/repeat_dewormingdate']
-                    response, record_id = self.save_deworming_record(deworm_object, animal_id)
+                    deworm_object = self.get_odk_values(animal_array, 'animalregistration/repeat_dewormingdate',
+                                                        False, None)
+                    if deworm_object is not None:
+                        response, record_id = self.save_deworming_record(deworm_object, animal_id)
                 except Exception as e:
                     logger.exception(e)
                     response = {
