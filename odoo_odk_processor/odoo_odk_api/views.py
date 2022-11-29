@@ -13,6 +13,7 @@ class WelcomeApiView(APIView):
 
     @staticmethod
     def get(request, *args, **kwargs):
+        print('welcome message')
         return Response('Odoo-ODK(Open Data Kit) processor', status=status.HTTP_200_OK)
 
 
