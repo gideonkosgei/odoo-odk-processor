@@ -108,14 +108,8 @@ class OdkFormProcessor:
             level_four_id = admin_unit['data'][0]['id']
 
             model = 'health.farmer'
-            # Farmer Details
-            group_key = 'contact_information/'
-            farmer_phone_number = self.get_odk_values(farm_object, group_key + 'farmer_phonenumber',
-                                                      False, None)
-            visiting_doctor_name = self.get_odk_values(farm_object, group_key + 'doctor_name',
-                                                       False, None)
-            farmer_name = self.get_odk_values(farm_object, group_key + 'farmer_name',
-                                              False, None)
+
+
             visiting_date = self.get_odk_values(farm_object, 'area/visit_date', False, None)
             visiting_date = datetime.now().strftime("%Y-%m-%d") if visiting_date is None else visiting_date
             country_id = self.get_odk_values(farm_object, 'area/country', False, None)
@@ -125,10 +119,17 @@ class OdkFormProcessor:
             nutritional_plan = self.get_odk_values(farm_object, group_key + 'feed_type', True, 17)
             regular_supply_of_minerals_and_vitamins = self.get_odk_values(farm_object, group_key + 'mineral_supply',
                                                                           True, 2)
+            # Farmer Details
+            group_key = 'farm_registration/'
+            farmer_phone_number = self.get_odk_values(farm_object, group_key + 'farmer_phonenumber',
+                                                      False, None)
+            farmer_name = self.get_odk_values(farm_object,  group_key + 'farmer_name', False, None)
+            farm_type = self.get_odk_values(farm_object, group_key + 'farm_type', True, 24)
+            age_group = self.get_odk_values(farm_object, group_key + 'farmer_age', True, 25)
+            gender = self.get_odk_values(farm_object, group_key + 'farmer_gender', True, 26)
 
             payload = {
                 'visiting_date': visiting_date,
-                'visiting_doctor_name': visiting_doctor_name,
                 'farmer_name': farmer_name,
                 'farmer_phone_number': farmer_phone_number,
                 'country_id': country_id,
@@ -138,6 +139,9 @@ class OdkFormProcessor:
                 'level_four_id': level_four_id,
                 'nutritional_plan': nutritional_plan,
                 'regular_supply_of_minerals_and_vitamins': regular_supply_of_minerals_and_vitamins,
+                'farm_type': farm_type,
+                'age_group': age_group,
+                'gender': gender
             }
 
             farmer = self.odoo.env[model]
@@ -288,9 +292,6 @@ class OdkFormProcessor:
                 animal_id = animal_array[
                     'animalregistration/animal_details/animal_id'] if 'animalregistration/animal_details/animal_id' in animal_array.keys() else None
 
-                animal_age = animal_array[
-                    'animalregistration/animal_details/animal_age'] if 'animalregistration/animal_details/animal_age' in animal_array.keys() else None
-
                 animal_type_code = animal_array[
                     'animalregistration/animal_details/animal_type'] if 'animalregistration/animal_details/animal_type' in animal_array.keys() else None
 
@@ -414,6 +415,10 @@ class OdkFormProcessor:
 
                 eyes_code = animal_array[
                     'animalregistration/grp_appearance/assessment_eyes'] if 'animalregistration/grp_appearance/assessment_eyes' in animal_array.keys() else None
+
+                group_key = 'animalregistration/animal_details/'
+                dob_accuracy = self.get_odk_values(animal_array, group_key + 'dob_type', True, 27)
+                animal_dob = self.get_odk_values(animal_array, group_key + 'animal_dob', False, None)
 
                 group_key = 'animalregistration/grp_appearance/'
                 wounded = self.get_odk_values(animal_array, group_key + 'assessment_wounds', True, 1)
@@ -612,7 +617,8 @@ class OdkFormProcessor:
                     'farmer_id': farm_id,
                     'animal_identification_number': animal_id,
                     'breed_id': breed_id,
-                    'animal_age': animal_age,
+                    'animal_dob': animal_dob,
+                    'dob_accuracy': dob_accuracy,
                     'species_id': species_id,
                     'animal_type_id': animal_type_id,
                     'age_at_first_heat': age_at_first_heat,
@@ -773,92 +779,6 @@ class OdkFormProcessor:
                 'status': 'error',
                 'message': str(e)
             }
-        return response
-
-    def save_submissionx(self):
-        response = ""
-        try:
-            req_body_len = len(self.odk_form_data.body)
-            assert (req_body_len > 0)
-        except AssertionError:
-            logger.exception('The Submission Request Body Is Empty')
-            response = {
-                'code': status.HTTP_400_BAD_REQUEST,
-                'status': 'error',
-                'message': 'The Submission Request Body Is Empty'
-            }
-        else:
-            try:
-                # only process if request body has values
-                json_data_obj = json.loads(self.odk_form_data.body)
-                json_data_str = json.dumps(json_data_obj)
-
-                try:
-                    # save the submitted json as a whole
-                    model_submission = 'health.odk.submission'
-                    payload_submission = {
-                        'odk_submitted_object': json_data_str,
-                        'is_processed': False
-                    }
-                    submission = self.odoo.env[model_submission]
-                    submission_id = submission.create(payload_submission)
-                    logger.info("Submission with UUID {} Saved. Record ID Is {}".format(
-                        json_data_obj['_uuid'], submission_id))
-
-                    # Register farmer
-                    model_farmer = 'health.client'
-                    payload_farmer = {
-                        'client_name': json_data_obj["contact_information/farmer_name"],
-                        'client_contact_number': json_data_obj["contact_information/doctor_name"],
-                    }
-                except odoorpc.error.RPCError as exc:
-                    response = {
-                        'code': status.HTTP_400_BAD_REQUEST,
-                        'status': 'error',
-                        'message': exc.info['data']['message']
-                    }
-
-                farmer = self.odoo.env[model_farmer]
-                farmer_id = farmer.create(payload_farmer)
-                logger.info("Farmer Registered. Record ID Is {}".format(farmer_id))
-
-                # Register Animal + Related Details
-                model_animal = 'health.animal'
-                animals_array = json_data_obj["animalregistration"]
-
-                for animal_array in animals_array:
-                    print('processing animal array')
-
-                    payload_animal = {
-                        'client_id': farmer_id,
-                        'animal_identification_number': animal_array['animalregistration/animal_details/animal_id'],
-                        'breed_id': animal_array['animalregistration/animal_details/animal_breed'],
-                        'animal_age': animal_array['animalregistration/animal_details/animal_age'],
-                    }
-                    print(payload_animal)
-                    animal = self.odoo.env[model_animal]
-                    animal_id = animal.create(payload_animal)
-                    logger.info("Animal Registered. Record ID Is {}".format(animal_id))
-
-                response = {
-                    'code': status.HTTP_200_OK,
-                    'status': 'ok',
-                    'message': 'Record Recorded successfully'
-                }
-            except odoorpc.error.RPCError as exc:
-                response = {
-                    'code': status.HTTP_400_BAD_REQUEST,
-                    'status': 'error',
-                    'message': exc.info['data']['message']
-                }
-            except Exception as e:
-                logger.exception(e)
-                response = {
-                    'code': status.HTTP_400_BAD_REQUEST,
-                    'status': 'error',
-                    'message': str(e)
-                }
-
         return response
 
     def get_submissions(self):
