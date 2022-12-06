@@ -109,8 +109,8 @@ class OdkFormProcessor:
 
             model = 'health.farmer'
 
-
             visiting_date = self.get_odk_values(farm_object, 'area/visit_date', False, None)
+            odk_user_id = self.get_odk_values(farm_object, 'staff_code', False, None)
             visiting_date = datetime.now().strftime("%Y-%m-%d") if visiting_date is None else visiting_date
             country_id = self.get_odk_values(farm_object, 'area/country', False, None)
 
@@ -123,7 +123,7 @@ class OdkFormProcessor:
             group_key = 'farm_registration/'
             farmer_phone_number = self.get_odk_values(farm_object, group_key + 'farmer_phonenumber',
                                                       False, None)
-            farmer_name = self.get_odk_values(farm_object,  group_key + 'farmer_name', False, None)
+            farmer_name = self.get_odk_values(farm_object, group_key + 'farmer_name', False, None)
             farm_type = self.get_odk_values(farm_object, group_key + 'farm_type', True, 24)
             age_group = self.get_odk_values(farm_object, group_key + 'farmer_age', True, 25)
             gender = self.get_odk_values(farm_object, group_key + 'farmer_gender', True, 26)
@@ -141,7 +141,8 @@ class OdkFormProcessor:
                 'regular_supply_of_minerals_and_vitamins': regular_supply_of_minerals_and_vitamins,
                 'farm_type': farm_type,
                 'age_group': age_group,
-                'gender': gender
+                'gender': gender,
+                'odk_user_id': odk_user_id
             }
 
             farmer = self.odoo.env[model]
@@ -416,6 +417,7 @@ class OdkFormProcessor:
                 eyes_code = animal_array[
                     'animalregistration/grp_appearance/assessment_eyes'] if 'animalregistration/grp_appearance/assessment_eyes' in animal_array.keys() else None
 
+                # Animal Details
                 group_key = 'animalregistration/animal_details/'
                 dob_accuracy = self.get_odk_values(animal_array, group_key + 'dob_type', True, 27)
                 animal_dob = self.get_odk_values(animal_array, group_key + 'animal_dob', False, None)
@@ -698,6 +700,8 @@ class OdkFormProcessor:
                     'advised': advised,
                     'treatment_advice_given': treatment_advice_given
                 }
+
+                logger.info(payload_animal)
 
                 try:
                     animal = self.odoo.env[model_animal]
